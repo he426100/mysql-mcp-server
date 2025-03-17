@@ -32,6 +32,7 @@ class MySqlServerCommand extends Command
     private string $username;
     private string $password;
     private string $database;
+    private int $port;
 
     // 配置命令
     protected function configure(): void
@@ -46,6 +47,13 @@ class MySqlServerCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 '数据库主机',
                 'localhost'
+            )
+            ->addOption(
+                'port',
+                null,
+                InputOption::VALUE_REQUIRED,
+                '数据库端口',
+                '3306'
             )
             ->addOption(
                 'username',
@@ -74,6 +82,7 @@ class MySqlServerCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->host = getenv('DB_HOST') ?: $input->getOption('host') ?: 'localhost';
+        $this->port = (int)(getenv('DB_PORT') ?: $input->getOption('port') ?: 3306);
         $this->username = getenv('DB_USERNAME') ?: $input->getOption('username') ?: 'root';
         $this->password = getenv('DB_PASSWORD') ?: $input->getOption('password') ?: '';
         $this->database = getenv('DB_DATABASE') ?: $input->getOption('database') ?: 'mysql';
@@ -246,7 +255,7 @@ class MySqlServerCommand extends Command
         }
 
         try {
-            $dsn = "mysql:host={$this->host};dbname={$this->database};charset=utf8mb4";
+            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->database};charset=utf8mb4";
             $options = [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
@@ -776,6 +785,7 @@ class MySqlServerCommand extends Command
         $result .= "| 默认字符集 | " . ($charsetInfo['DEFAULT_CHARACTER_SET_NAME'] ?? '无法获取') . " |\n";
         $result .= "| 默认排序规则 | " . ($charsetInfo['DEFAULT_COLLATION_NAME'] ?? '无法获取') . " |\n";
         $result .= "| 主机 | {$this->host} |\n";
+        $result .= "| 端口 | {$this->port} |\n";
         
         return $result;
     }
