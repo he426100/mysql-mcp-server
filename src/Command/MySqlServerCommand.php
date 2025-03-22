@@ -10,7 +10,6 @@ use He426100\MysqlMcpServer\Service\LoggerService;
 
 use Mcp\Server\Server;
 use Mcp\Server\ServerRunner;
-use Mcp\Server\SwowRunner;
 use Mcp\Types\Tool;
 use Mcp\Types\CallToolResult;
 use Mcp\Types\ListToolsResult;
