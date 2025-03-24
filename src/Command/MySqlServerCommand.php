@@ -48,7 +48,7 @@ class MySqlServerCommand extends Command
                 'localhost'
             )
             ->addOption(
-                'port',
+                'db-port',
                 null,
                 InputOption::VALUE_REQUIRED,
                 '数据库端口',
@@ -74,14 +74,23 @@ class MySqlServerCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 '数据库名称',
                 'mysql'
-            );
+            )
+            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'Port to listen on for SSE', 8000)
+            ->addOption('transport', null, InputOption::VALUE_OPTIONAL, 'Transport type', 'stdio');
     }
 
     // 执行命令
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $transport = $input->getOption('transport');
+        if (!in_array($transport, ['stdio', 'sse'])) {
+            throw new \Exception('Unsupported transport: ' . $transport);
+        }
+
+        $ssePort = $input->getOption('port');
+
         $this->host = getenv('DB_HOST') ?: $input->getOption('host') ?: 'localhost';
-        $this->port = (int)(getenv('DB_PORT') ?: $input->getOption('port') ?: 3306);
+        $this->port = (int)(getenv('DB_PORT') ?: $input->getOption('db-port') ?: 3306);
         $this->username = getenv('DB_USERNAME') ?: $input->getOption('username') ?: 'root';
         $this->password = getenv('DB_PASSWORD') ?: $input->getOption('password') ?: '';
         $this->database = getenv('DB_DATABASE') ?: $input->getOption('database') ?: 'mysql';
@@ -229,7 +238,7 @@ class MySqlServerCommand extends Command
 
         // 创建初始化选项并运行服务器
         $initOptions = $server->createInitializationOptions();
-        $runner = new ServerRunner($logger);
+        $runner = new ServerRunner($logger, $transport, '0.0.0.0', $ssePort);
 
         try {
             $runner->run($server, $initOptions);
